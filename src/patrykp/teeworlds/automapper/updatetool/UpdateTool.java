@@ -56,7 +56,7 @@ public class UpdateTool {
 		
 		File saveFile = new File(fileToUpdate.getParentFile(), newName);
 		if( saveNewFile(saveFile, jsonTilesets) ) {
-			System.out.printf("Success! File saved as %s", saveFile.toString());
+			System.out.printf("Success! File saved as %s\n", saveFile.toString());
 		}
 		
 	}

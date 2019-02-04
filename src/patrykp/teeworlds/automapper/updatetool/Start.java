@@ -18,7 +18,7 @@ public class Start {
 	}
 
 	public static void showHelp(){
-		System.out.println("Usage: updatetool rules...");
+		System.out.println("Usage: rules_update_tool rules...");
 		System.out.println("");
 		System.out.println("\trules\tFiles to update");
 		System.out.println("");
@@ -28,7 +28,7 @@ public class Start {
 		for(int i = 0 ; i < UpdateTool.locations.length ; i++)
 			System.out.printf("\t%s\n", UpdateTool.locations[i]);
 		System.out.println("");
-		System.out.println("Example: updatetool grass_main.rules winter_main.rules");
+		System.out.println("Example: rules_update_tool grass_main.rules winter_main.rules");
 	}
 
 }

@@ -37,26 +37,36 @@ public class UpdateTool {
 			return;
 		}
 		System.out.printf("Found: %s\n",fileToUpdate.toString());
-		
-		ArrayList<Tileset> readedTilesets = readFile(fileToUpdate);
-		if(readedTilesets==null) {
-			System.err.println("File read error");
-			return;
-		}
-		JSONObject jsonTilesets = createJSon(readedTilesets);
-		if(jsonTilesets==null) {
-			System.err.println("JSON prassing error");
-			return;
-		}
+		//Check name for new file
 		String newName=fileToUpdate.getName();
 		if(newName.endsWith(".rules")) {
 			newName = newName.substring(0, newName.length()-6); //remove ".rule"
 		}
 		newName += ".json";
-		
 		File saveFile = new File(fileToUpdate.getParentFile(), newName);
+		if(saveFile.exists()) {
+			System.out.printf("Can't create '%s'. File arleady exists\n", saveFile.toString());
+			return;
+		}
+		
+		//read .rules file
+		ArrayList<Tileset> readedTilesets = readFile(fileToUpdate);
+		if(readedTilesets==null) {
+			System.err.println("File read error");
+			return;
+		}
+		//create json
+		JSONObject jsonTilesets = createJSon(readedTilesets);
+		if(jsonTilesets==null) {
+			System.err.println("JSON prassing error");
+			return;
+		}
+		
+		//save json
 		if( saveNewFile(saveFile, jsonTilesets) ) {
 			System.out.printf("Success! File saved as %s\n", saveFile.toString());
+		}else {
+			System.out.printf("Error with saving %s\n", saveFile.toString());
 		}
 		
 	}
@@ -97,7 +107,6 @@ public class UpdateTool {
 					continue;
 				}
 				if( line.startsWith("Index") ) {
-					//int tileId = Integer.parseInt(line.substring(6));//"Index ".length();
 					String[] args = line.split(" ");
 					int tileId = Integer.parseInt(args[1]);
 					if(currTileset.baseTile==0) {
@@ -115,15 +124,17 @@ public class UpdateTool {
 				}
 				
 				if( line.startsWith("Pos") ) {
-					//i: 0   1 2 3
+					//i: 0   1 2 3     4
+					//s: Pos 0 0 Index 1
 					//s: Pos 0 0 EMPTY
 					String[] args = line.split(" ");
 					int x = Integer.parseInt(args[1]);
 					int y = Integer.parseInt(args[2]);
-					String value = args[3];
-					currRule.addCondition(new Condition(x, y, value) );
-					//TODO: implement Index property
-					//eg. Pos 1 0 Index "whatever"
+					if(args.length==4) { //Pos 0 0 EMPTY
+						currRule.addCondition(new Condition(x, y, args[3]) );
+					}else {//Pos 0 0 Index 1
+						currRule.addCondition(new Condition(x, y, args[4]) );
+					}
 					
 					continue;
 				}
@@ -159,7 +170,7 @@ public class UpdateTool {
 			for(Rule rule : tileset.getRules()) {
 				JSONObject jsonRule = new JSONObject();
 				jsonRule.put("index", rule.getTileIndex());
-				if(rule.hFlip) jsonRule.put("hflip", 1);
+				if(rule.hFlip) jsonRule.put("hflip", 1);//TODO move check before file processing
 				if(rule.vFlip) jsonRule.put("vflip", 1);
 				if(rule.rotation != Rule.Rotation.R0) jsonRule.put("rotate", rule.rotation.getValue());
 				if(rule.random >= 0) jsonRule.put("random", rule.random);
@@ -188,13 +199,14 @@ public class UpdateTool {
 	}
 	
 	boolean saveNewFile(File f, JSONObject json) {
-		if(f.exists()) return false; //TODO move check before file processing
+		if(f.exists()) return false;
 		try {
 			FileWriter fw = new FileWriter(f);
 			json.write(fw);
 			fw.close();
 		}catch(IOException er) {
 			System.err.printf("Writting file error: %s\n", er.getMessage());
+			return false;
 		}
 		return true;
 	}
